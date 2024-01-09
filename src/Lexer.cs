@@ -30,8 +30,11 @@ namespace lilulang.src {
         public Dictionary<string, TokenType> CreateGrammarData() {
             terminals = new Dictionary<string, TokenType> {
                 ["+"]   = TokenType.ADD,
+                ["-"]   = TokenType.SUB,
+                ["*"]   = TokenType.MUL,
+                ["/"]   = TokenType.DIV,
                 ["end"] = TokenType.END,
-                ["num"] = TokenType.NUMBER
+                ["num"] = TokenType.NUMBER      //mutable value
             };
 
             return terminals;
@@ -106,6 +109,10 @@ namespace lilulang.src {
         public string SrcCode {
             get => srcCode;
             set => srcCode = value;
+        }
+        
+        public override string ToString() {
+            return "[Lilu] -> Lexical Analyzer [" + GetHashCode() + "]";
         }
     }
 }

@@ -58,11 +58,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\Expression.cs" />
+    <Compile Include="src\entity\Ast.cs" />
     <Compile Include="src\Lexer.cs" />
     <Compile Include="src\LiluLang.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\Token.cs" />
+    <Compile Include="src\entity\Token.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="information\interpreter.md" />

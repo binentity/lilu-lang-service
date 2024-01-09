@@ -6,7 +6,10 @@ namespace lilulang.src {
     public enum TokenType {
         NUMBER = 0, 
         ADD    = 1,
-        END    = 2
+        END    = 2,
+        SUB    = 3,
+        MUL    = 4,
+        DIV    = 5
     }
 
     public class Token {
