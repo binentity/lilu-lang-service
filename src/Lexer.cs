@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.AccessControl;
 using System.Text;
 
 namespace lilulang.src {
 
     public class Lexer {
 
-        private string operators = "+-";
+        private static readonly string OPERATORS = "+-*/%()";
 
-        public List<Token> tokensList;
+        private List<Token> tokensList;
         private string srcCode;
         private int pos;
 
+        private Dictionary<string, TokenType> terminals;
+        
         public Lexer(string SrcCode) {
             if (string.IsNullOrEmpty(SrcCode)) {
                 throw new ArgumentException("[INFO]: empty data. Please add text...");
@@ -20,20 +23,81 @@ namespace lilulang.src {
             pos = 0;
             this.SrcCode = SrcCode;
             tokensList = new List<Token>();
+
+            CreateGrammarData();
         }
 
-        private char Peek() {
-            if (pos >= SrcCode.Length) {
-                return '\0';
+        public Dictionary<string, TokenType> CreateGrammarData() {
+            terminals = new Dictionary<string, TokenType> {
+                ["+"]   = TokenType.ADD,
+                ["end"] = TokenType.END,
+                ["num"] = TokenType.NUMBER
+            };
+
+            return terminals;
+        }
+
+        public List<Token> Tokenize() {
+
+            // FIXME: Bad realization. need to be fixed.
+            while (pos < SrcCode.Length) {
+                char currentChar = Peek(0);
+
+                if (char.IsDigit(currentChar)) {
+                    TokenizeNumber();
+                } else if (OPERATORS.Contains(currentChar.ToString())) {
+                    TokenizeSpecialChar();
+                } else {
+                    // TODO: Whitespaces not implemented.
+                    Step();
+                }
+
             }
-            return SrcCode[pos];
+            return tokensList;
         }
 
-        private char Step() {
-            pos++;
-            return Peek();
+        // Идет продвижение исходной строки с помощью утил метода Step()
+        private void TokenizeNumber() {
+            StringBuilder stringBuilder = new StringBuilder();
+            char currentChar = Peek(0);
+            while (char.IsDigit(currentChar)) {
+                stringBuilder.Append(currentChar);
+                currentChar = Step();
+            }
+            AddToken(TokenType.NUMBER, stringBuilder.ToString());
+        }
+
+        // Идет продвижение исходной строки с помощью утил метода Step()
+        private void TokenizeSpecialChar() {
+            // Костыль небольшой...
+            AddToken(TokenType.ADD, "+");
+            Step();
         }
         
+        #region utilMethods
+
+        //Utils method
+        private void AddToken(TokenType type, string value) {
+            Token token = new Token(type, value);
+            tokensList.Add(token);
+        }
+
+        //Utils method
+        private char Peek(int relativePosition = 0) {
+            int position = relativePosition + pos;
+            if (position >= SrcCode.Length) {
+                return '\0';
+            }
+            return SrcCode[position];
+        }
+
+        //Utils method
+        private char Step() {
+            pos += pos + 1;
+            return Peek(0);
+        }
+        #endregion
+
         public List<Token> Tokens {
             get => tokensList;
             set => tokensList = value;
@@ -42,44 +106,6 @@ namespace lilulang.src {
         public string SrcCode {
             get => srcCode;
             set => srcCode = value;
-        }
-
-        public List<Token> Tokenize() {
-
-
-            while (pos < SrcCode.Length) {
-                char currentChar = Peek();
-
-                if (char.IsDigit(currentChar)) {
-                    TokenizeNumber();
-                } else if (operators.Contains(currentChar.ToString())) {
-                    TokenizeSpecialChar();
-                } else {
-                    // TODO: Whitespaces
-                    Step();
-                }
-                
-                //Step();
-            }
-            return tokensList;
-        }
-
-        private void TokenizeNumber() {
-            StringBuilder stringBuilder = new StringBuilder();
-            char currentChar = Peek();
-            while (char.IsDigit(currentChar)) {
-                stringBuilder.Append(currentChar);
-                currentChar = Step();
-            }
-            Token token = new Token(TokenType.NUMBER, stringBuilder.ToString());
-            tokensList.Add(token);
-        }
-
-        private void TokenizeSpecialChar() {
-            // Костыль небольшой...
-            Token token = new Token(TokenType.ADD, "+");
-            tokensList.Add(token);
-            Step();
         }
     }
 }

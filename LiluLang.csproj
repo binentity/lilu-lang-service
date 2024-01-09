@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="information\interpreter.md" />
+    <None Include="information\nameconvensions.md" />
     <None Include="Properties\App.config" />
   </ItemGroup>
   <ItemGroup>
