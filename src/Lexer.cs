@@ -2,53 +2,50 @@
 using System.Collections.Generic;
 using System.Security.AccessControl;
 using System.Text;
+using lilulang.src.entity;
 
 namespace lilulang.src {
 
     public class Lexer {
 
-        private static readonly string OPERATORS = "+-*/%()";
+        private readonly string OPERATORS_SEQUENCE = "+-*/%()";
+        private readonly Dictionary<string, TokenType> grammar;
 
-        private List<Token> tokensList;
-        private string srcCode;
         private int pos;
-
-        private Dictionary<string, TokenType> terminals;
         
-        public Lexer(string SrcCode) {
-            if (string.IsNullOrEmpty(SrcCode)) {
-                throw new ArgumentException("[INFO]: empty data. Please add text...");
+        public Lexer(string srcCode) {
+            if (string.IsNullOrEmpty(srcCode)) {
+                throw new ArgumentException("[INFO]: Empty data. Please add source code...");
             }
 
             pos = 0;
-            this.SrcCode = SrcCode;
-            tokensList = new List<Token>();
+            SrcCode = srcCode;
+            Tokens = new List<Token>();
 
-            CreateGrammarData();
+            grammar = CreateGrammar();
         }
 
-        public Dictionary<string, TokenType> CreateGrammarData() {
-            terminals = new Dictionary<string, TokenType> {
+        private Dictionary<string, TokenType> CreateGrammar() {
+            var grammar = new Dictionary<string, TokenType> {
                 ["+"]   = TokenType.ADD,
                 ["-"]   = TokenType.SUB,
                 ["*"]   = TokenType.MUL,
                 ["/"]   = TokenType.DIV,
                 ["end"] = TokenType.END,
-                ["num"] = TokenType.NUMBER      //mutable value
+                ["num"] = TokenType.NUMBER      // NOTE: mutable value parameter
             };
-
-            return terminals;
+            return grammar;
         }
 
         public List<Token> Tokenize() {
 
             // FIXME: Bad realization. need to be fixed.
             while (pos < SrcCode.Length) {
-                char currentChar = Peek(0);
+                var currentChar = Peek();
 
                 if (char.IsDigit(currentChar)) {
                     TokenizeNumber();
-                } else if (OPERATORS.Contains(currentChar.ToString())) {
+                } else if (OPERATORS_SEQUENCE.Contains(currentChar.ToString())) {
                     TokenizeSpecialChar();
                 } else {
                     // TODO: Whitespaces not implemented.
@@ -56,61 +53,54 @@ namespace lilulang.src {
                 }
 
             }
-            return tokensList;
+            return Tokens;
         }
 
         // Идет продвижение исходной строки с помощью утил метода Step()
         private void TokenizeNumber() {
             StringBuilder stringBuilder = new StringBuilder();
-            char currentChar = Peek(0);
+            char currentChar = Peek();
+
             while (char.IsDigit(currentChar)) {
                 stringBuilder.Append(currentChar);
                 currentChar = Step();
             }
-            AddToken(TokenType.NUMBER, stringBuilder.ToString());
+
+            AddToken(grammar["num"], stringBuilder.ToString());
         }
 
         // Идет продвижение исходной строки с помощью утил метода Step()
         private void TokenizeSpecialChar() {
             // Костыль небольшой...
-            AddToken(TokenType.ADD, "+");
+            AddToken(grammar["+"], "");
             Step();
         }
         
-        #region utilMethods
-
-        //Utils method
-        private void AddToken(TokenType type, string value) {
-            Token token = new Token(type, value);
-            tokensList.Add(token);
-        }
-
-        //Utils method
-        private char Peek(int relativePosition = 0) {
-            int position = relativePosition + pos;
+        private char Peek(int relative = 0) {
+            int position = relative + pos;
             if (position >= SrcCode.Length) {
-                return '\0';
+                return '\n';
             }
             return SrcCode[position];
         }
 
-        //Utils method
         private char Step() {
-            pos += pos + 1;
-            return Peek(0);
-        }
-        #endregion
-
-        public List<Token> Tokens {
-            get => tokensList;
-            set => tokensList = value;
+            pos++;
+            return Peek();
         }
 
-        public string SrcCode {
-            get => srcCode;
-            set => srcCode = value;
+        private void AddToken(TokenType type, string value) {
+            Token token = new Token(type, value);
+            Tokens.Add(token);
         }
-        
+
+        private List<Token> Tokens { get; set; }
+
+        private string SrcCode { get; set; }
+
+        public int Pos { get => pos; 
+            set => pos = value; }
+
         public override string ToString() {
             return "[Lilu] -> Lexical Analyzer [" + GetHashCode() + "]";
         }

@@ -1,7 +1,6 @@
 ﻿using System;
 
-
-namespace lilulang.src {
+namespace lilulang.src.entity {
 
     public enum TokenType {
         NUMBER = 0, 
